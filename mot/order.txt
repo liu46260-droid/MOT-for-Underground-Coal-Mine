@@ -1,0 +1,62 @@
+Tracking：
+$ boxmot track --yolo-model rtdetr-l.pt        # bboxes only
+$ boxmot track --yolo-model rf-detr-base.pt    # bboxes only
+$ boxmot track --yolo-model yolox_s.pt         # bboxes only
+$ boxmot track --yolo-model yolo12n.pt         # bboxes only
+$ boxmot track --yolo-model yolo11n.pt         # bboxes only
+$ boxmot track --yolo-model yolov10n.pt        # bboxes only
+$ boxmot track --yolo-model yolov9c.pt         # bboxes only
+$ boxmot track --yolo-model yolov8n.pt         # bboxes only
+                            yolov8n-seg.pt     # bboxes + segmentation masks
+                            yolov8n-pose.pt    # bboxes + pose estimation
+
+Tracking methods:
+$ boxmot track --tracking-method deepocsort
+                                 strongsort
+                                 ocsort
+                                 bytetrack
+                                 botsort
+                                 boosttrack
+
+Tracking sources:
+$ boxmot track --source 0                               # webcam
+                        img.jpg                         # image
+                        vid.mp4                         # video
+                        path/                           # directory
+                        path/*.jpg                      # glob
+                        'https://youtu.be/Zgi9g1ksQHc'  # YouTube
+                        'rtsp://example.com/media.mp4'  # RTSP, RTMP, HTTP stream
+
+Select ReID model:
+$ boxmot track --source 0 --reid-model lmbn_n_cuhk03_d.pt               # lightweight
+                                       osnet_x0_25_market1501.pt
+                                       mobilenetv2_x1_4_msmt17.engine
+                                       resnet50_msmt17.onnx
+                                       osnet_x1_0_msmt17.pt
+                                       clip_market1501.pt               # heavy
+                                       clip_vehicleid.pt
+                                      ...
+
+Evaluation:
+# reproduce MOT17 README results
+$ boxmot eval --yolo-model yolox_x_MOT17_ablation.pt --reid-model lmbn_n_duke.pt --tracking-method boosttrack --source MOT17-ablation --verbose 
+# MOT20 results
+$ boxmot eval --yolo-model yolox_x_MOT20_ablation.pt --reid-model lmbn_n_duke.pt --tracking-method boosttrack --source MOT20-ablation --verbose 
+# Dancetrack results
+$ boxmot eval --yolo-model yolox_x_dancetrack_ablation.pt --reid-model lmbn_n_duke.pt --tracking-method boosttrack --source dancetrack-ablation --verbose 
+# metrics on custom dataset
+$ boxmot eval --yolo-model yolov8n.pt --reid-model osnet_x0_25_msmt17.pt --tracking-method deepocsort  --source ./assets/MOT17-mini/train --verbose
+
+Evolution:
+# saves dets and embs under ./runs/dets_n_embs separately for each selected yolo and reid model
+$ boxmot generate --source ./assets/MOT17-mini/train --yolo-model yolov8n.pt yolov8s.pt --reid-model weights/osnet_x0_25_msmt17.pt
+# evolve parameters for specified tracking method using the selected detections and embeddings generated in the previous step
+$ boxmot tune --yolo-model yolov8n.pt --reid-model osnet_x0_25_msmt17.pt --n-trials 9 --tracking-method botsort --source ./assets/MOT17-mini/train
+
+Export:
+# export to ONNX
+$ boxmot export --weights weights/osnet_x0_25_msmt17.pt --include onnx --device cpu
+# export to OpenVINO
+$ boxmot export --weights weights/osnet_x0_25_msmt17.pt --include openvino --device cpu
+# export to TensorRT with dynamic input
+$ boxmot export --weights weights/osnet_x0_25_msmt17.pt --include engine --device 0 --dynamic
